@@ -20,10 +20,11 @@ subroutine init_cond(rho, vex, vey, pre, phi, phix, phiy)
    ymin = 0.0
    ymax = 1.0
 
-   xmin =-0.1
-   xmax = 0.1
-   ymin =-0.1
-   ymax = 0.1
+   ! Miczek test
+   !xmin =-0.1
+   !xmax = 0.1
+   !ymin =-0.1
+   !ymax = 0.1
 
    !xmin = -1.0
    !xmax = +1.0
@@ -60,14 +61,14 @@ subroutine init_cond(rho, vex, vey, pre, phi, phix, phiy)
          !pre(i,j) = p0 * exp(-rho0/p0*phi(i,j))
 
          ! polytropic
-         !T        = 1.0 - (nu-1.0)*phi(i,j)/nu
-         !rho(i,j) = T**(1.0/(nu-1.0))
-         !pre(i,j) = T**(nu/(nu-1.0))
+         T        = 1.0 - (nu-1.0)*phi(i,j)/nu
+         rho(i,j) = T**(1.0/(nu-1.0))
+         pre(i,j) = T**(nu/(nu-1.0))
 
-         ! polytropic Miczek
-         T        = 1.0 - alpha*phi(i,j)
-         pre(i,j) = T**(1.0/alpha)
-         rho(i,j) = pre(i,j)/T
+         ! polytropic Miczek: unstable atmosphere
+         !T        = 1.0 - alpha*phi(i,j)
+         !pre(i,j) = T**(1.0/alpha)
+         !rho(i,j) = pre(i,j)/T
 
          ! rayleigh taylor
          !r = sqrt(x*x + y*y)
