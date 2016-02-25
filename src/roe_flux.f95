@@ -1,3 +1,9 @@
+! Computes roe flux in the direction (ct,st)
+! (ct,st)      = unit normal vector to cell face
+!                vector points from left state towards right state
+! priml, primr = left/right primitive state (density, x velocity, y velocity, pressure)
+! flux         = numerical flux (mass, x momentum, y momentum, energy)
+! dflux        = ignore this
 subroutine roe_flux(ct, st, priml, primr, flux, dflux)
       use comvar
       implicit none
