@@ -6,7 +6,7 @@ Praveen C and C. Klingenberg, "A second order well-balanced finite volume scheme
 
 Initial conditions and problem definition are in separate files called ```init_cond_xyz.f95```; uncomment the required case in ```init_cond.f95```.
 
-The boundaries can be treated as solid walls. If you want solid wall, set
+The boundaries can be treated as solid walls. If you do not want solid wall, set
 
 ```
 wall = 0
