@@ -212,7 +212,7 @@ subroutine solveFVM(rho, vex, vey, pre, omg, co0, co1, res)
                   call reconstruct(wip2, wip1, wi, primr)
 
                endif
-               call roe_flux(1.0, 0.0, priml, primr, xflux, dxflux)
+               call numflux(1.0, 0.0, priml, primr, xflux, dxflux)
                res(:,i,j)   = res(:,i,j)   + dy*xflux(:)
                res(:,i+1,j) = res(:,i+1,j) - dy*xflux(:)
             enddo
@@ -348,7 +348,7 @@ subroutine solveFVM(rho, vex, vey, pre, omg, co0, co1, res)
                   call reconstruct(wjm1, wj, wjp1, priml)
                   call reconstruct(wjp2, wjp1, wj, primr)
                endif
-               call roe_flux(0.0, 1.0, priml, primr, yflux, dyflux)
+               call numflux(0.0, 1.0, priml, primr, yflux, dyflux)
                res(:,i,j)   = res(:,i,j)   + dx*yflux(:)
                res(:,i,j+1) = res(:,i,j+1) - dx*yflux(:)
             enddo

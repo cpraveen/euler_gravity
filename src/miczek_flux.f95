@@ -106,7 +106,7 @@ subroutine miczek_flux(normalX, normalY, primitiveLeft, primitiveRight, flux, df
   dUdV(3,1) = uAveraged
   dUdV(3,2) = vAveraged
   dUdV(3,3) = 1.0/(GAMMA - 1)
-		
+
   dVdU(0,0) = 1.0
   dVdU(1,0) = -uAveraged
   dVdU(1,1) = 1.0
