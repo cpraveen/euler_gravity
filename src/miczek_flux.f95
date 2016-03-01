@@ -139,10 +139,10 @@ subroutine miczek_flux(normalX, normalY, primitiveLeft, primitiveRight, flux, df
      end do
   end do
 
-  upwinding(1) = res(0)
-  upwinding(2) = res(1)
-  upwinding(3) = res(2)
-  upwinding(4) = res(3)
+  upwinding(1) = res3(0)
+  upwinding(2) = res3(1)
+  upwinding(3) = res3(2)
+  upwinding(4) = res3(3)
 
   !     Total flux
   flux    =  0.5*( FluxAverage - upwinding )

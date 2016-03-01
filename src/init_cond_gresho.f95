@@ -37,7 +37,10 @@ subroutine init_cond_gresho(rho, vex, vey, pre, phi, phix, phiy)
          x = xmin + (i-1)*dx + 0.5*dx
          y = ymin + (j-1)*dy + 0.5*dy
 
-         phi(i,j) = potential(x,y)
+         ! no gravity
+         phi(i,j) = 1.0
+         phix(i,j) = 0.0
+         phiy(i,j) = 0.0
 
          ! gresho vortex
          r = sqrt(x*x + y*y)

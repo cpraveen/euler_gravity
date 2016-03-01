@@ -59,12 +59,13 @@ subroutine solveFVM(rho, vex, vey, pre, omg, co0, co1, res)
    call saveprim(0.0, rho, vex, vey, pre, rho0, pre0)
    call vorticity(rho, vex, vey, pre, omg)
    call savevort(0.0, omg)
-   call timestep(rho, vex, vey, pre)
 
    time   = 0.0
    it     = 0
 
    do while(time < final_time .and. it < itmax)
+
+      call timestep(rho, vex, vey, pre)
 
       ! Exactly match final time
       tostop = .false.
