@@ -13,6 +13,7 @@ subroutine miczek_flux(normalX, normalY, primitiveLeft, primitiveRight, flux, df
   integer :: i,j
   real    :: rhoLeft, uLeft, vLeft, pressureLeft, enthalpyLeft, &
        rhoRight, uRight, vRight, pressureRight, enthalpyRight, &
+       machLocal, limitedMach, delta, m1n, tau, machCutoff, &
        uAveraged, vAveraged, velSqrAveraged, soundspeedSqrAveraged, soundspeedAveraged, enthalpyAveraged, &
        sqrtRhoLeft, sqrtRhoRight, roeAverageFactor, &
        velNormalLeft, velNormalRight, velNormalAveraged, velTangentialAveraged, FluxAverage(4), upwinding(4), &
@@ -20,7 +21,8 @@ subroutine miczek_flux(normalX, normalY, primitiveLeft, primitiveRight, flux, df
        a1l1, a2l2, a3l3, a4l4, aact, aast, &
        diffRho, diffMomX, diffMomY, diffEnergy, &
        absVelNormalAveraged, &
-       dUdV(0:3, 0:3), dVdU(0:3, 0:3), miczekMatrixPrim(0:3, 0:3), diff(0:3), res(0:3), res2(0:3), res3(0:3)
+       dUdV(0:3, 0:3), dVdU(0:3, 0:3), miczekMatrixPrim(0:3, 0:3), diff(0:3), res(0:3), res2(0:3), res3(0:3), &
+       sqrtVelSqrAveraged
  
   rhoLeft = primitiveLeft(1)
   uLeft = primitiveLeft(2)
@@ -72,21 +74,59 @@ subroutine miczek_flux(normalX, normalY, primitiveLeft, primitiveRight, flux, df
   velTangentialAveraged =-uAveraged*normalY + vAveraged*normalX
 
   absVelNormalAveraged = abs(velNormalAveraged)
+  sqrtVelSqrAveraged   = sqrt(velSqrAveraged)
 
-  !     Miczek matrix (simplified form)
+  !     Miczek matrix
+  machCutoff = 1e-10
+
+  machLocal = sqrtVelSqrAveraged / soundspeedAveraged	    
+  if (machLocal > 1.0) then
+     limitedMach = 1.0
+  else 
+     if (machLocal > machCutoff) then
+        limitedMach = machLocal
+     else
+        limitedMach = machCutoff
+     end if
+  end if
+  delta = 1.0/limitedMach - 1
+  
+  if (velNormalAveraged >= 0) then
+     m1n = 1.0
+  else 
+     m1n = -1.0
+  end if
+  tau = sqrt(soundspeedSqrAveraged * (1.0 + delta**2) - delta**2*velNormalAveraged**2);
+  
+  
   miczekMatrixPrim = 0
 
   miczekMatrixPrim(0,0) = absVelNormalAveraged
-  miczekMatrixPrim(1,1) = miczekMatrixPrim(0,0)
-  miczekMatrixPrim(2,2) = miczekMatrixPrim(0,0)
-  miczekMatrixPrim(3,3) = miczekMatrixPrim(0,0)
+  miczekMatrixPrim(0,1) = normalX * (-soundspeedSqrAveraged * delta + soundspeedAveraged*velNormalAveraged + &
+       delta*velNormalAveraged**2) / (soundspeedAveraged * tau)
+  miczekMatrixPrim(0,2) = normalY * (-soundspeedSqrAveraged * delta + soundspeedAveraged*velNormalAveraged + &
+       delta*velNormalAveraged**2) / (soundspeedAveraged * tau)
+  miczekMatrixPrim(0,3) = -absVelNormalAveraged/soundspeedSqrAveraged + 1.0/tau
 
-  miczekMatrixPrim(1,3) = normalX
-  miczekMatrixPrim(3,1) = -soundspeedSqrAveraged*normalX
-
-  miczekMatrixPrim(2,3) = normalY
-  miczekMatrixPrim(3,2) = -soundspeedSqrAveraged*normalY
-
+  !miczekMatrixPrim(1,0) = 0.0;
+  miczekMatrixPrim(1,1) = normalX * soundspeedSqrAveraged/tau + normalY * absVelNormalAveraged;
+  !miczekMatrixPrim(1,2) = 0.0;
+  miczekMatrixPrim(1,3) = normalX * (soundspeedAveraged**3*delta + tau**2*velNormalAveraged) / &
+       (soundspeedSqrAveraged*tau + soundspeedAveraged*delta*tau*velNormalAveraged)
+  
+  !miczekMatrixPrim(2,0) = 0.0;
+  !miczekMatrixPrim(2,1) = 0.0;
+  miczekMatrixPrim(2,2) = normalX * absVelNormalAveraged + normalY * soundspeedSqrAveraged/tau;
+  miczekMatrixPrim(2,3) = normalY * (soundspeedAveraged**3*delta + tau**2*velNormalAveraged) / &
+       (soundspeedSqrAveraged*tau + soundspeedAveraged*delta*tau*velNormalAveraged)
+  
+  !miczekMatrixPrim(3,0) = 0.0;
+  miczekMatrixPrim(3,1) = normalX * (soundspeedAveraged * (-soundspeedSqrAveraged*delta + soundspeedAveraged*velNormalAveraged + &
+       delta*velNormalAveraged**2)) / tau;
+  miczekMatrixPrim(3,2) = normalY * (soundspeedAveraged * (-soundspeedSqrAveraged*delta + soundspeedAveraged*velNormalAveraged + &
+       delta*velNormalAveraged**2)) / tau;;
+  miczekMatrixPrim(3,3) = soundspeedSqrAveraged / tau;
+  
   !     Difference of conserved variables
   diff(0) = rhoRight                                 - rhoLeft
   diff(1) = rhoRight*uRight                          - rhoLeft*uLeft
@@ -124,6 +164,8 @@ subroutine miczek_flux(normalX, normalY, primitiveLeft, primitiveRight, flux, df
      end do
   end do
 
+  !write (*,*) res(0)
+
   do i = 0, 3
      res2(i) = 0
      do j = 0, 3
@@ -131,6 +173,7 @@ subroutine miczek_flux(normalX, normalY, primitiveLeft, primitiveRight, flux, df
      end do
   end do
 
+  !write (*,*) res2(0)
 
   do i = 0, 3
      res3(i) = 0
@@ -138,6 +181,8 @@ subroutine miczek_flux(normalX, normalY, primitiveLeft, primitiveRight, flux, df
         res3(i) = res3(i) + dUdV(i, j)*res2(j)
      end do
   end do
+
+  !write (*,*) res3(0)
 
   upwinding(1) = res3(0)
   upwinding(2) = res3(1)
