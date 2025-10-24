@@ -15,3 +15,8 @@ wall = 0
 in ```solveFVM.f95```, otherwise set it to 1.
 
 To switch off gravity, return 1.0 in function ```potential```.
+
+---
+
+* `Origin`: https://codeberg.org/cpraveen/euler_gravity
+* `Mirror`: https://github.com/cpraveen/euler_gravity
